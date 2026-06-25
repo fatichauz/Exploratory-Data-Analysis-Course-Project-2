@@ -1,19 +1,25 @@
-source("downloadArchive.R")
+#download data and save to "Data" folder
+fileUrl <- "https://d396qusza40orc.cloudfront.net/exdata%2Fdata%2FNEI_data.zip"
+zipFile <- "pm25 emissions.zip"
 
-# Load the NEI & SCC data frames.
+
+if (!file.exists(zipFile)) {
+  download.file(fileUrl, zipFile, mode = "wb")
+}
+data <- "Data"
+if (!file.exists(data)) {
+  unzip(zipFile)
+}
+
+#read files
 NEI <- readRDS("summarySCC_PM25.rds")
 SCC <- readRDS("Source_Classification_Code.rds")
 
-# Aggregate by sum the total emissions by year
-aggTotals <- aggregate(Emissions ~ year,NEI, sum)
+#calculate total sum of emissions by year
+Emissions <- tapply(NEI$Emissions, NEI$year, sum)
 
-png("plot1.png",width=480,height=480,units="px",bg="transparent")
-
-barplot(
-  (aggTotals$Emissions)/10^6,
-  names.arg=aggTotals$year,
-  xlab="Year",
-  ylab="PM2.5 Emissions (10^6 Tons)",
-  main="Total PM2.5 Emissions From All US Sources")
+#plot barplot
+png("plot1.png")
+barplot(Emissions/1000000, xlab="Year", ylab="PM2.5 Emissions (millions of tons)", main="Total PM2.5 Emissions in US by Year", ylim=c(0,8))
 
 dev.off()
